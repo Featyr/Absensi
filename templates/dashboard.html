@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — MTs Al-Ittihad Purabaya</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">
+      <img src="/static/logo.jpg" alt="Logo">
+    </div>
+    <div>
+      <div class="sidebar-title">MTs Al-Ittihad</div>
+      <div class="sidebar-subtitle">Absensi Digital</div>
+    </div>
+  </div>
+
+  <div class="sidebar-school-info">
+    Jl. Purabaya Km. 36, Kec. Purabaya<br>
+    Kab. Sukabumi — Jawa Barat<br>
+    <span class="npsn">NPSN 20277882</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-tab="tab-absensi">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+      <span>Absensi</span>
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-siswa">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Data Siswa</span>
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-riwayat">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Riwayat</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-badge">
+      <div class="user-avatar">{{ nama_petugas[0] | upper }}</div>
+      <div>
+        <div class="user-name">{{ nama_petugas }}</div>
+        <div class="user-role">Petugas</div>
+      </div>
+    </div>
+    <a href="/logout" class="btn-logout" title="Logout">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </a>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main" id="main">
+  <header class="topbar">
+    <button class="hamburger" id="hamburger" title="Toggle sidebar">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <h2 class="page-title" id="pageTitle">Absensi</h2>
+    <div class="topbar-right">
+      <span class="clock" id="clock"></span>
+    </div>
+  </header>
+
+  <!-- ===== TAB: ABSENSI ===== -->
+  <section class="tab-content active" id="tab-absensi">
+    <div class="grid-absensi">
+      <!-- Camera + Status -->
+      <div class="card card-camera">
+        <div class="card-header">
+          <h3>Live Webcam</h3>
+          <span class="badge badge-live" id="camBadge">LIVE</span>
+        </div>
+        <div class="camera-wrapper">
+          <img id="stream" src="/video_feed" alt="Live webcam">
+        </div>
+        <div class="rfid-status" id="status">
+          <div class="rfid-status-icon" id="statusIcon">
+            <svg viewBox="0 0 24 24"><path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 10 10c0 5.5-4.5 10-10 10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div class="rfid-status-text" id="statusText">Tempelkan kartu RFID</div>
+        </div>
+      </div>
+
+      <!-- Action panels -->
+      <div class="action-panels">
+        <!-- Simulasi Tap -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Simulasi Tap Kartu</h3>
+            <span class="badge badge-info">RFID</span>
+          </div>
+          <p class="card-desc">Ketik UID kartu yang sudah terdaftar, lalu klik tombol di bawah. Verifikasi wajah tetap berjalan.</p>
+          <div class="input-group">
+            <input id="simUid" placeholder="Contoh: A1B2C3D4" maxlength="14" spellcheck="false" autocomplete="off">
+            <button id="btnSimTap" class="btn btn-primary">
+              <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Tap
+            </button>
+          </div>
+        </div>
+
+        <!-- Scan Wajah -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Identifikasi Alternatif</h3>
+            <span class="badge badge-alt">Wajah</span>
+          </div>
+          <p class="card-desc">Scan wajah siswa yang tidak membawa kartu. Petugas harus mengkonfirmasi hasil identifikasi.</p>
+          <button id="btnScan" class="btn btn-secondary btn-full">
+            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Scan Wajah
+          </button>
+          <!-- Candidate result -->
+          <div id="candidate" class="candidate-card" style="display:none">
+            <div class="candidate-info">
+              <div class="candidate-name" id="candNama"></div>
+              <div class="candidate-meta"><span id="candNis"></span> · <span id="candKelas"></span></div>
+              <div class="candidate-distance">Jarak: <strong id="candDistance"></strong></div>
+            </div>
+            <div class="candidate-actions">
+              <button id="btnConfirm" class="btn btn-success btn-sm">Konfirmasi</button>
+              <button id="btnCancel" class="btn btn-ghost btn-sm">Batal</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel absensi hari ini -->
+    <div class="card card-table">
+      <div class="card-header">
+        <h3>Absensi Hari Ini</h3>
+        <span class="badge badge-count" id="absenCount">0</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Jam Masuk</th>
+              <th>NIS</th>
+              <th>Nama Lengkap</th>
+              <th>Kelas</th>
+              <th>Metode</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="absensiBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyAbsensi">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <p>Belum ada data absensi hari ini</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: DATA SISWA ===== -->
+  <section class="tab-content" id="tab-siswa">
+    <div class="card">
+      <div class="card-header">
+        <h3>Tambah Siswa Baru</h3>
+      </div>
+      <div class="form-row">
+        <div class="field-inline">
+          <label>NIS</label>
+          <input id="addNis" placeholder="001" autocomplete="off">
+        </div>
+        <div class="field-inline">
+          <label>Nama Lengkap</label>
+          <input id="addNama" placeholder="Nama siswa" autocomplete="off">
+        </div>
+        <div class="field-inline">
+          <label>Kelas</label>
+          <input id="addKelas" placeholder="9A" autocomplete="off">
+        </div>
+        <button id="btnAddSiswa" class="btn btn-primary btn-form">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah
+        </button>
+      </div>
+      <div id="addSiswaMsg" class="form-msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Daftarkan Wajah</h3>
+      </div>
+      <p class="card-desc">Arahkan wajah siswa ke webcam, lalu masukkan ID siswa dan klik Daftar.</p>
+      <div class="form-row">
+        <div class="field-inline">
+          <label>ID Siswa</label>
+          <input id="faceId" placeholder="1" type="number" autocomplete="off">
+        </div>
+        <button id="btnRegFace" class="btn btn-secondary btn-form">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Daftar Wajah
+        </button>
+      </div>
+      <div id="regFaceMsg" class="form-msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Assign Kartu RFID</h3>
+      </div>
+      <div class="form-row">
+        <div class="field-inline">
+          <label>ID Siswa</label>
+          <input id="cardSiswaId" placeholder="1" type="number" autocomplete="off">
+        </div>
+        <div class="field-inline">
+          <label>UID Kartu</label>
+          <input id="cardUid" placeholder="A1B2C3D4" maxlength="14" spellcheck="false" autocomplete="off">
+        </div>
+        <button id="btnAssignCard" class="btn btn-secondary btn-form">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Assign
+        </button>
+      </div>
+      <div id="assignCardMsg" class="form-msg"></div>
+    </div>
+
+    <!-- Tabel semua siswa -->
+    <div class="card card-table">
+      <div class="card-header">
+        <h3>Daftar Siswa</h3>
+        <button id="btnRefreshSiswa" class="btn btn-ghost btn-sm">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>NIS</th><th>Nama Lengkap</th><th>Kelas</th><th>Status</th></tr>
+          </thead>
+          <tbody id="siswaBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptySiswa" style="display:none">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <p>Belum ada data siswa</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: RIWAYAT ===== -->
+  <section class="tab-content" id="tab-riwayat">
+    <div class="card">
+      <div class="card-header">
+        <h3>Riwayat Absensi Hari Ini</h3>
+      </div>
+      <p class="card-desc">Tampilan riwayat kehadiran hari ini dalam bentuk timeline.</p>
+      <div class="timeline" id="timeline"></div>
+      <div class="empty-state" id="emptyTimeline" style="display:none">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <p>Belum ada riwayat</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ===== NAVIGATION ===== */
+const tabs = document.querySelectorAll('.nav-item');
+const contents = document.querySelectorAll('.tab-content');
+const pageTitle = document.getElementById('pageTitle');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    e.preventDefault();
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    const target = document.getElementById(tab.dataset.tab);
+    if (target) target.classList.add('active');
+    pageTitle.textContent = tab.querySelector('span').textContent;
+    if (tab.dataset.tab === 'tab-siswa') loadSiswa();
+    if (tab.dataset.tab === 'tab-riwayat') renderTimeline();
+    if (window.innerWidth < 900) {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('main').classList.remove('sidebar-open');
+    }
+  });
+});
+
+/* ===== HAMBURGER ===== */
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('main').classList.toggle('sidebar-open');
+});
+
+/* ===== CLOCK ===== */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* ===== RFID STATUS (SSE) ===== */
+const statusEl = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+const statusIcon = document.getElementById('statusIcon');
+
+const statusIcons = {
+  idle: '<svg viewBox="0 0 24 24"><path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 10 10c0 5.5-4.5 10-10 10"/><path d="M12 6v6l4 2"/></svg>',
+  success: '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  error: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  mismatch: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  duplicate: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+};
+
+const es = new EventSource('/api/rfid_status');
+es.onmessage = (e) => {
+  const d = JSON.parse(e.data);
+  statusText.textContent = d.message || '';
+  statusEl.className = 'rfid-status ' + (d.status || 'idle');
+  statusIcon.innerHTML = statusIcons[d.status] || statusIcons.idle;
+  if (d.status === 'success' || d.status === 'duplicate') loadAbsensi();
+};
+
+/* ===== ABSENSI TABLE ===== */
+let absensiData = [];
+
+async function loadAbsensi() {
+  const res = await fetch('/api/absensi_today');
+  absensiData = await res.json();
+  const tbody = document.getElementById('absensiBody');
+  const empty = document.getElementById('emptyAbsensi');
+  document.getElementById('absenCount').textContent = absensiData.length;
+
+  if (absensiData.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = absensiData.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><span class="mono">${r.jam_masuk}</span></td>
+      <td><span class="mono">${r.nis}</span></td>
+      <td>${r.nama_lengkap}</td>
+      <td><span class="badge badge-kelas">${r.kelas}</span></td>
+      <td><span class="badge ${r.metode === 'RFID' ? 'badge-info' : 'badge-alt'}">${r.metode}</span></td>
+      <td><span class="badge badge-hadir">${r.status_kehadiran}</span></td>
+    </tr>
+  `).join('');
+}
+
+/* ===== SIMULASI TAP ===== */
+document.getElementById('btnSimTap').addEventListener('click', async () => {
+  const uid = document.getElementById('simUid').value.trim().toUpperCase();
+  if (!uid) {
+    statusText.textContent = 'Masukkan UID terlebih dahulu';
+    statusEl.className = 'rfid-status error';
+    statusIcon.innerHTML = statusIcons.error;
+    return;
+  }
+  statusText.textContent = 'Memproses UID ' + uid + '\u2026';
+  statusEl.className = 'rfid-status idle';
+  statusIcon.innerHTML = statusIcons.idle;
+  const res = await fetch('/api/simulate_tap', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({uid_kartu: uid})
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    statusText.textContent = data.message;
+    statusEl.className = 'rfid-status error';
+    statusIcon.innerHTML = statusIcons.error;
+  }
+});
+
+/* ===== SCAN WAJAH ===== */
+const candidateEl = document.getElementById('candidate');
+let candidateId = null;
+
+document.getElementById('btnScan').addEventListener('click', async () => {
+  statusText.textContent = 'Memindai wajah\u2026';
+  statusEl.className = 'rfid-status idle';
+  const res = await fetch('/api/manual_scan', {method: 'POST'});
+  const data = await res.json();
+  if (!res.ok) {
+    statusText.textContent = data.message;
+    statusEl.className = 'rfid-status error';
+    statusIcon.innerHTML = statusIcons.error;
+    return;
+  }
+  candidateId = data.candidate.id_siswa;
+  document.getElementById('candNama').textContent = data.candidate.nama_lengkap;
+  document.getElementById('candNis').textContent = data.candidate.nis;
+  document.getElementById('candKelas').textContent = data.candidate.kelas;
+  document.getElementById('candDistance').textContent = data.distance.toFixed(4);
+  candidateEl.style.display = '';
+});
+
+document.getElementById('btnConfirm').addEventListener('click', async () => {
+  const res = await fetch('/api/confirm_alternative', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({id_siswa: candidateId})
+  });
+  const data = await res.json();
+  candidateEl.style.display = 'none';
+  statusText.textContent = res.ok ? 'Absensi alternatif tercatat' : data.message;
+  statusEl.className = 'rfid-status ' + (res.ok ? 'success' : 'error');
+  statusIcon.innerHTML = res.ok ? statusIcons.success : statusIcons.error;
+  if (res.ok) loadAbsensi();
+});
+
+document.getElementById('btnCancel').addEventListener('click', () => {
+  candidateEl.style.display = 'none'; candidateId = null;
+});
+
+/* ===== DATA SISWA ===== */
+async function loadSiswa() {
+  const res = await fetch('/api/siswa');
+  const rows = await res.json();
+  const tbody = document.getElementById('siswaBody');
+  const empty = document.getElementById('emptySiswa');
+  if (rows.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.id_siswa}</td>
+      <td><span class="mono">${r.nis}</span></td>
+      <td>${r.nama_lengkap}</td>
+      <td><span class="badge badge-kelas">${r.kelas}</span></td>
+      <td><span class="badge ${r.status_siswa === 'Aktif' ? 'badge-hadir' : 'badge-info'}">${r.status_siswa}</span></td>
+    </tr>
+  `).join('');
+}
+
+async function showMsg(elId, msg, ok) {
+  const el = document.getElementById(elId);
+  el.textContent = msg;
+  el.className = 'form-msg ' + (ok ? 'msg-ok' : 'msg-err');
+  el.style.display = '';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+document.getElementById('btnAddSiswa').addEventListener('click', async () => {
+  const nis = document.getElementById('addNis').value.trim();
+  const nama = document.getElementById('addNama').value.trim();
+  const kelas = document.getElementById('addKelas').value.trim();
+  if (!nis || !nama || !kelas) { showMsg('addSiswaMsg', 'Lengkapi semua field', false); return; }
+  const res = await fetch('/api/siswa', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({nis, nama_lengkap: nama, kelas})
+  });
+  const data = await res.json();
+  showMsg('addSiswaMsg', res.ok ? `Siswa ditambahkan (ID: ${data.id_siswa})` : data.message, res.ok);
+  if (res.ok) { document.getElementById('addNis').value=''; document.getElementById('addNama').value=''; document.getElementById('addKelas').value=''; loadSiswa(); }
+});
+
+document.getElementById('btnRegFace').addEventListener('click', async () => {
+  const id = document.getElementById('faceId').value.trim();
+  if (!id) { showMsg('regFaceMsg', 'Masukkan ID siswa', false); return; }
+  const res = await fetch('/api/register_face', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({id_siswa: parseInt(id)})
+  });
+  const data = await res.json();
+  showMsg('regFaceMsg', res.ok ? 'Wajah berhasil didaftarkan' : data.message, res.ok);
+});
+
+document.getElementById('btnAssignCard').addEventListener('click', async () => {
+  const id = document.getElementById('cardSiswaId').value.trim();
+  const uid = document.getElementById('cardUid').value.trim().toUpperCase();
+  if (!id || !uid) { showMsg('assignCardMsg', 'Lengkapi semua field', false); return; }
+  const res = await fetch('/api/assign_card', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({id_siswa: parseInt(id), uid_kartu: uid})
+  });
+  const data = await res.json();
+  showMsg('assignCardMsg', res.ok ? `Kartu berhasil di-assign (ID: ${data.id_kartu})` : data.message, res.ok);
+  if (res.ok) { document.getElementById('cardSiswaId').value=''; document.getElementById('cardUid').value=''; }
+});
+
+document.getElementById('btnRefreshSiswa').addEventListener('click', loadSiswa);
+
+/* ===== TIMELINE ===== */
+function renderTimeline() {
+  const container = document.getElementById('timeline');
+  const empty = document.getElementById('emptyTimeline');
+  if (absensiData.length === 0) { container.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+  container.innerHTML = absensiData.map(r => `
+    <div class="timeline-item">
+      <div class="timeline-dot ${r.metode === 'RFID' ? 'dot-rfid' : 'dot-alt'}"></div>
+      <div class="timeline-content">
+        <div class="timeline-time">${r.jam_masuk}</div>
+        <div class="timeline-name">${r.nama_lengkap}</div>
+        <div class="timeline-meta">${r.nis} · ${r.kelas} · ${r.metode}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ===== INIT ===== */
+loadAbsensi();
+setInterval(loadAbsensi, 10000);
+</script>
+</body>
+</html>
